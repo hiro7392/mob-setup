@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
+	"strings"
 )
 
 func (m model) selectTypist(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -13,14 +14,14 @@ func (m model) selectTypist(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "up", "k":
-			if m.cursor > 0 {
+			if m.cursor > 0 && m.members[m.cursor-1] != m.mobLeader {
 				m.cursor--
-				m.mobLeader = m.members[m.cursor]
+				m.typist = m.members[m.cursor]
 			}
 		case "down", "j":
-			if m.cursor < len(m.members)-1 {
+			if m.cursor < len(m.members)-1 && m.members[m.cursor+1] != m.mobLeader {
 				m.cursor++
-				m.mobLeader = m.members[m.cursor]
+				m.typist = m.members[m.cursor]
 			}
 		case "enter":
 			m.step++
@@ -42,13 +43,17 @@ func (m model) selectTypistView() string {
 		}
 
 		// Is this choice selected?
-		checked := " " // not selected
+		isTypist := " " // not selected
 		if nowMember == m.typist {
-			checked = "*" // selected!
+			isTypist = "*" // selected!
+		}
+		isMobLeader := " "
+		if nowMember == m.mobLeader {
+			isMobLeader = "x"
 		}
 
 		// Render the row
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, nowMember.name)
+		s += fmt.Sprintf("%s [%s] %s\n", cursor, strings.TrimSpace(isTypist+isMobLeader), nowMember.name)
 	}
 
 	// The footer
